@@ -1909,10 +1909,6 @@ class SearXNGSearchProvider(BaseSearchProvider):
                         f"{error_msg}；SearXNG 实例可能未启用 JSON 输出（请检查 settings.yml），"
                         "或实例/代理拒绝了本次访问"
                     )
-                elif response.status_code == 429:
-                    # 429 Too Many Requests: 等待5秒让IP冷却
-                    logger.debug("[SearXNG] 触发限流(429)，等待5秒后重试...")
-                    time.sleep(5)
                 return SearchResponse(
                     query=query,
                     results=[],
@@ -2074,11 +2070,6 @@ class SearXNGSearchProvider(BaseSearchProvider):
 
             errors.append(f"{base_url}: {response.error_message or '未知错误'}")
             logger.warning("[%s] 实例 %s 搜索失败: %s", self.name, base_url, response.error_message)
-
-            # 实例失败间隔：防止连续请求被限流
-            if len(errors) < len(candidates):  # 不是最后一个实例
-                logger.debug("[SearXNG] 等待3秒后尝试下一个实例...")
-                time.sleep(3)
 
         elapsed = time.time() - start_time
         return SearchResponse(
